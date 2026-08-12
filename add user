@@ -1,0 +1,43 @@
+<?php
+header('Content-Type: application/json');
+require_once 'config.php';
+
+// Only accept POST requests
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+    exit;
+}
+
+// Get and sanitize input
+$name = trim($conn->real_escape_string($_POST['name'] ?? ''));
+$age  = intval($_POST['age'] ?? 0);
+
+// Validate input
+if (empty($name)) {
+    echo json_encode(['success' => false, 'message' => 'Name is required']);
+    exit;
+}
+if ($age <= 0 || $age > 150) {
+    echo json_encode(['success' => false, 'message' => 'Please enter a valid age']);
+    exit;
+}
+
+// Insert into database
+$sql = "INSERT INTO users (name, age, status) VALUES ('$name', $age, 0)";
+
+if ($conn->query($sql)) {
+    $newId = $conn->insert_id;
+    echo json_encode([
+        'success' => true,
+        'message' => 'User added successfully',
+        'id'      => $newId,
+        'name'    => htmlspecialchars($name),
+        'age'     => $age,
+        'status'  => 0
+    ]);
+} else {
+    echo json_encode(['success' => false, 'message' => 'Database error: ' . $conn->error]);
+}
+
+$conn->close();
+?>
