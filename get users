@@ -1,0 +1,22 @@
+<?php
+header('Content-Type: application/json');
+require_once 'config.php';
+
+$sql    = "SELECT id, name, age, status FROM users ORDER BY id ASC";
+$result = $conn->query($sql);
+
+$users = [];
+if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $users[] = [
+            'id'     => (int)$row['id'],
+            'name'   => htmlspecialchars($row['name']),
+            'age'    => (int)$row['age'],
+            'status' => (int)$row['status']
+        ];
+    }
+}
+
+echo json_encode(['success' => true, 'users' => $users]);
+$conn->close();
+?>
