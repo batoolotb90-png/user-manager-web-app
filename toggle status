@@ -1,0 +1,38 @@
+<?php
+header('Content-Type: application/json');
+require_once 'config.php';
+
+// Only accept POST requests
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+    exit;
+}
+
+// Get and validate ID
+$id = intval($_POST['id'] ?? 0);
+
+if ($id <= 0) {
+    echo json_encode(['success' => false, 'message' => 'Invalid ID']);
+    exit;
+}
+
+// Toggle status: if 0 -> 1, if 1 -> 0
+$sql = "UPDATE users SET status = IF(status = 0, 1, 0) WHERE id = $id";
+
+if ($conn->query($sql) && $conn->affected_rows > 0) {
+    // Fetch the new status
+    $result    = $conn->query("SELECT status FROM users WHERE id = $id");
+    $row       = $result->fetch_assoc();
+    $newStatus = (int)$row['status'];
+
+    echo json_encode([
+        'success'    => true,
+        'id'         => $id,
+        'new_status' => $newStatus
+    ]);
+} else {
+    echo json_encode(['success' => false, 'message' => 'Update failed or record not found']);
+}
+
+$conn->close();
+?>
